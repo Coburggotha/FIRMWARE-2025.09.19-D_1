@@ -407,8 +407,63 @@ uint16_t GPIO_Pin : 부호 없는 16비트 정수 매개변수(핀 마스크).
 <br>
 
 ### 3. Uart이용 Serial 통신
+- 프로젝트 생성시 기본적으로 Uart 핀이 설정이 되어있다.
+ <p align="center">
+<img width="673" height="614" alt="image" src="https://github.com/user-attachments/assets/68c26f12-f394-43d6-9436-e75193535a49" />
+</p>
+<br>
+<br>
 
-- 
+- PC 와 시리얼 통신을 위해서는 통신속도등이 PC 와 동일해야 한다. 여기서는 Teraterm 프로그램을 통해 시리얼 통신을 할 것이므로 설정을 맞춰준다.
+- CubeIDE에서는 기본 설정으로 USART2핀이 활성화 되어있고(PA2,PA3 핀) Asynchronous 모드 때문에 사실상 비동기식인 UART모드로 사용가능하다.
+  
+- Usart : Universal synchronous and asynchronous receiver-transmitter // 동기식, 비동기식 모두 가능
+- Uart  : Universal Asynchronous Receiver/Transmitter                 // 비동기식만 가능
+ <p align="center">
+<img width="874" height="772" alt="image" src="https://github.com/user-attachments/assets/658cd95e-6b11-423f-9721-26f6fc555420" />
+</p>
+<br>
+<br>
+
+ <p align="center">
+<img width="606" height="729" alt="image" src="https://github.com/user-attachments/assets/d81be7bc-09fd-476c-8cac-3edb9a239fdc" />
+</p>
+
+<br>
+<br>
+
+- 이제 printf 함수를 통해 Uart로 Serial 통신하여 Teraterm으로 문자를 출력 받아 보겠다. 본 Uart 통신을 위해서는 별도의 h파일 과 c 파일이 필요하다
+- 프로젝트 생성 폴더에서 Core폴더의 Inc 폴더와 Src 폴더에 각각 uart2_printf.h 와 uart2_printf.c 를 넣어준다.
+<br>
+
+ <p align="center">
+<img width="952" height="352" alt="image" src="https://github.com/user-attachments/assets/d92ce28c-6410-48af-8177-b1c2b388d026" />
+</p>
+<br>
+
+<p align="center">
+<img width="898" height="425" alt="image" src="https://github.com/user-attachments/assets/02e90f88-6cfc-4529-9626-82f2384c3014" />
+</p>
+<br>
+<br>
+
+- /* USER CODE BEGIN Includes */에 #include "uart2_printf.h" 를 입력하여 해당 헤더파일을 불러올 수 있도록 한다. 
+<p align="center">
+ <img width="229" height="127" alt="image" src="https://github.com/user-attachments/assets/495f3b58-06a7-4be3-b283-3316871f708e" />
+ </p>
+ <br>
+<br>
+
+- 이후 printf 함수를 입력하고 프로그램을 업로드하면 Reset 버튼을 누를때마다. 문자가 출력된다. 
+<p align="center">
+<img width="320" height="98" alt="image" src="https://github.com/user-attachments/assets/1538b407-c090-4740-98c0-2c184ff1344f" />
+ </p>
+<br>
+<br>
+
+<p align="center">
+<img width="288" height="201" alt="image" src="https://github.com/user-attachments/assets/97915e2b-4370-473d-a7ae-d7446744c29d" />
+ </p>
 
 
 
