@@ -210,26 +210,33 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState Pin
 
 <br>
 <br>
-### 2. SW이용 LED 제어 프로젝트
 
-- Nucleo 보드의 B1 스위치를 이용할 것이다. 기본 설정에서 B1이 GPIO_EXTI(외부 인터럽트) 로써 활성화 되어 있으며 B1 스위치에 외부 PullUp 저항이 HW적으로 구성 되어 있어 GPIO 설정에서 PullUp 설정이 불필요하다.
+### 2. SW이용 LED 제어 프로젝트
+- Nucleo 보드의 B1 스위치를 이용할 것이다. 기본 설정에서 B1이 GPIO_EXTI(외부 인터럽트) 로써 활성화 되어 있다.
 <p align="center">
    <img width="682" height="563" alt="image" src="https://github.com/user-attachments/assets/e7e99403-008b-4f8a-9273-bfd66c92150f" />
 </p>
 <br>
 <br>
+
+- 여기서는 Input 모드로 사용 할 것이므로 바꿔준다. B1 스위치에 외부 PullUp 저항이 HW적으로 구성 되어 있어 GPIO 설정에서 PullUp 설정이 불필요하다.(하여도 무관)
+<p align="center">
+<img width="717" height="675" alt="image" src="https://github.com/user-attachments/assets/109bb69b-d8f8-4e32-8229-ba11787b986b" />
+</p>
 - B1 스위치 회로
 <p align="center">
 <img width="496" height="315" alt="image" src="https://github.com/user-attachments/assets/60df6662-7c56-4d50-a7dc-e2dff7a6a36a" />
 </p>
 <br>
 <br>
+
 - GPIO Init(GPIO 초기설정) 코드를 살펴보자.
 <p align="center">
 <img width="437" height="424" alt="image" src="https://github.com/user-attachments/assets/5470c843-b72f-451c-9eaa-14fa1d227f21" />
 </p>
 <br>
 <br>
+
 ```c
 static void MX_GPIO_Init(void)
 {
@@ -249,7 +256,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
@@ -260,10 +267,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
 
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
@@ -271,12 +274,42 @@ static void MX_GPIO_Init(void)
 ```
 <br>
 <br>
-- GPIO Writen 함수를 직관적으로 보기위해 1, 0을(GPIO_SET,REST과 동일) ON, OFF로 정의해주고 사용하겠다.
+
+- GPIO Writen 함수를 직관적으로 보기위해 1, 0을(GPIO_SET,REST과 동일) ON, OFF로 매크로 선언하여 정의해주고 사용하겠다.
 - #define : #define 매크로 선언 매크로 할 것
 - ex)#define ON 1 : ON을 쓰면 전처리기에서 1로 치환한다.
 <p align="center">
 <img width="176" height="93" alt="image" src="https://github.com/user-attachments/assets/cdff545a-702f-4ee9-a5a7-e8d9752d580f" />
 </p>
+<br>
+<br>
+
+- 일정시간 동안 스위치가 눌려야 감지하도록 하는 변수와, LED 상태 제어를 위한 함수를 선언한다.
+```c
+  /* USER CODE BEGIN 2 */
+int debounce_delay = 160;
+int led_state = 0;
+  /* USER CODE END 2 */
+```
+<br>
+<br>
+
+- B1 스위치의 입력을 받아 LD2를 Toggle 시키는 코드를 작성해보자.  
+```c
+  while (1)
+  {
+	  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){
+	 		  HAL_Delay(debounce_delay);
+	 		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){
+	 			 led_state = led_state^1;
+	 			 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, led_state);
+	 		  }
+	  }
+```
+
+
+
+
 
 
  
