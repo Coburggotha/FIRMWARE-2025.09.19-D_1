@@ -128,9 +128,9 @@
 <p align="center">
 <img width="611" height="230" alt="image" src="https://github.com/user-attachments/assets/0463eb8f-3f65-40a2-8c1a-4c1125db3447" />
 </p>
+<br>
+<br>
 
-<br>
-<br>
 - GPIO_TypeDef *GPIOx : GPIO_TypeDef 타입 포인터를 인자로 받는다.
 
 ```c
@@ -237,6 +237,7 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState Pin
 <br>
 <br>
 
+- B1_Pin 이 ReadMode로 설정되어있다.
 ```c
 static void MX_GPIO_Init(void)
 {
@@ -279,12 +280,13 @@ static void MX_GPIO_Init(void)
 - #define : #define 매크로 선언 매크로 할 것
 - ex)#define ON 1 : ON을 쓰면 전처리기에서 1로 치환한다.
 <p align="center">
-<img width="176" height="93" alt="image" src="https://github.com/user-attachments/assets/cdff545a-702f-4ee9-a5a7-e8d9752d580f" />
+<img width="214" height="100" alt="image" src="https://github.com/user-attachments/assets/436cb9da-387e-4e7c-83fc-d8d37b6d7a8a" />
 </p>
 <br>
 <br>
 
-- 일정시간 동안 스위치가 눌려야 감지하도록 하는 변수와, LED 상태 제어를 위한 함수를 선언한다.
+- 일정시간 동안 스위치가 눌려야 감지하도록 하는 디바운스 변수와, LED 상태 제어를 위한 함수를 선언한다.
+- 디바운스(Debounce) : 함수 호출이 짧은 시간 안에 반복적으로 발생하는 것을 방지하고, 마지막으로 이벤트가 발생한 후 일정 시간이 지나야만 해당 함수가 한 번 실행되도록 하는 기법
 ```c
   /* USER CODE BEGIN 2 */
 int debounce_delay = 160;
@@ -294,18 +296,107 @@ int led_state = 0;
 <br>
 <br>
 
-- B1 스위치의 입력을 받아 LD2를 Toggle 시키는 코드를 작성해보자.  
+- B1 스위치의 입력을 받아 LD2를 Toggle 시키는 코드를 작성해보자.
 ```c
   while (1)
   {
-	  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){
+	  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){         // if , GPIO Read 상태가 ON 이면 실행
+	 		  HAL_Delay(debounce_delay); // 160ms 기다린다.
+	 		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){ // 160ms 기다리고 여전히 ON 이면 상태이면 
+	 			 led_state = led_state^1;                      //led 상태를 Xor 비트 연산을 통해 토글 시킨다. ^: 비트 Xor 연산
+	 			 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, led_state);
+	 		  }
+	  }
+```
+<br>
+<br>
+
+- 하지만 위 코드는 기본적으로 MCU의 B1 스위치 연결 포트가 HIGH 동작인 코드이므로, 스위치가 HW적으로 PullUp되어 있어 VCC에 연결됨으로 if 문이 계속 수행된다. 따라서 LED가 계속 깜빡인다.
+- 이를 해결하기 위해 코드의 ON을 OFF로 바꿔주면 LOW 조건 동작인 코드이므로 B1 스위치가 눌릴때 LOW 상태가 되어 LED가 토글 된다.
+ ```c
+  while (1)
+  {
+	  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== OFF){
 	 		  HAL_Delay(debounce_delay);
-	 		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== ON){
+	 		  if(HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin)== OFF){
 	 			 led_state = led_state^1;
 	 			 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, led_state);
 	 		  }
 	  }
 ```
+<br>
+<br>
+
+- 실제 동작을 해보면 B1 스위치 눌림에 따라 스위치가 토글이 될 때도 있지만 안 될 때도 있다. 이는 입력 디바운스 시간 설정에 따라 해당시간보다 누름 시간이 짧으면 코드가 동작 하지 않기 때문이다.
+- 이런 단점을 해결하는 방법이 인터럽트를 이용하여 스위치 입력을 인식하는 방법이 있다.
+
+- HAL_GPIO_ReadPin 함수의 구조를 살펴보자.
+
+```c
+GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+{
+  GPIO_PinState bitstatus;
+
+  /* Check the parameters */
+  assert_param(IS_GPIO_PIN(GPIO_Pin));
+
+  if ((GPIOx->IDR & GPIO_Pin) != (uint32_t)GPIO_PIN_RESET)
+  {
+    bitstatus = GPIO_PIN_SET;
+  }
+  else
+  {
+    bitstatus = GPIO_PIN_RESET;
+  }
+  return bitstatus;
+}
+```
+<br>
+<br>
+
+- GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+```c
+GPIO_PinState : 반환 타입. 보통 enum { GPIO_PIN_RESET=0, GPIO_PIN_SET=1 } 형태의 열거형.
+
+HAL_GPIO_ReadPin : 식별자(함수 이름).
+
+(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin) : 매개변수 목록
+
+GPIO_TypeDef *GPIOx : 구조체 GPIO_TypeDef를 가리키는 포인터 매개변수. 포인터는 값에 의한 전달이며, 함수 안에서 ->로 멤버 접근.
+
+uint16_t GPIO_Pin : 부호 없는 16비트 정수 매개변수(핀 마스크).
+
+중괄호 { ... } : 함수 본문 블록.
+```
+<br>
+<br>
+
+- GPIO_PinState bitstatus : 열거형 타입의 지역변수 bitstatus를 선언한다.
+<br>
+<br>
+
+``` c
+  if ((GPIOx->IDR & GPIO_Pin) != (uint32_t)GPIO_PIN_RESET) // GPIOx->IDR AND 연산 GPIO_Pin 한것이 같지 않으면 (uint32_t)GPIO_PIN_RESET 실행
+  {
+    bitstatus = GPIO_PIN_SET;
+  }
+  else
+  {
+    bitstatus = GPIO_PIN_RESET;
+  }
+  return bitstatus;
+}
+```
+
+
+
+- 
+
+
+
+
+
+
 
 
 
