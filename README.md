@@ -376,19 +376,37 @@ uint16_t GPIO_Pin : 부호 없는 16비트 정수 매개변수(핀 마스크).
 <br>
 
 ``` c
-  if ((GPIOx->IDR & GPIO_Pin) != (uint32_t)GPIO_PIN_RESET) // GPIOx->IDR AND 연산 GPIO_Pin 한것이 같지 않으면 (uint32_t)GPIO_PIN_RESET 실행
+  if ((GPIOx->IDR & GPIO_Pin) != (uint32_t)GPIO_PIN_RESET) // GPIOx->IDR 와 GPIO_Pin를 &(AND 연산)한 것이 
+                                                           // (uint32_t)GPIO_PIN_RESET 와 !=(같지 않으면) 실행
   {
-    bitstatus = GPIO_PIN_SET;
+    bitstatus = GPIO_PIN_SET;                              // bitstatus를 SET(HIGH) 상태로
   }
   else
   {
-    bitstatus = GPIO_PIN_RESET;
+    bitstatus = GPIO_PIN_RESET;                            // bitstatus를 RESET(LOW) 상태로
   }
   return bitstatus;
 }
 ```
+<br>
+<br>
+
+- IDR은 Port input data register 이다.
+
+<p align="center">
+<img width="1006" height="456" alt="image" src="https://github.com/user-attachments/assets/f0c43de4-39ea-4c0a-b3de-ea6370c2c782" />
+</p>
+<br>
+<br>
 
 
+- GPIOx->IDR : 해당 포트의 입력 데이터 레지스터(각 핀의 현재 레벨이 비트로 들어있음)
+- GPIO_Pin : 핀 선택 비트마스크(예: GPIO_PIN_5 = 1<<5). 현재 상태가 아니라 “어느 비트를 볼지”를 지정하는 마스크
+- 즉 AND 연산으로 IDR에서 지정된 핀만 GPIO_Pin 값과 비교하여 마스킹 하는 것이다.
+<br>
+<br>
+
+### 3. Uart이용 Serial 통신
 
 - 
 
