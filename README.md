@@ -123,27 +123,7 @@
  <br>
 <br>
 
-```c
-
-void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
-{
-  /* Check the parameters */
-  assert_param(IS_GPIO_PIN(GPIO_Pin));
-  assert_param(IS_GPIO_PIN_ACTION(PinState));
-
-  if (PinState != GPIO_PIN_RESET)
-  {
-    GPIOx->BSRR = GPIO_Pin;
-  }
-  else
-  {
-    GPIOx->BSRR = (uint32_t)GPIO_Pin << 16u;
-  }
-}
-```
- 
 - 코드를 하나씩 살펴보자.
- 
 - Void로 반환값이 없는 함수로(함수이름:HAL_GPIO_WritePin) 선언이 되어있다.
 <p align="center">
 <img width="611" height="230" alt="image" src="https://github.com/user-attachments/assets/0463eb8f-3f65-40a2-8c1a-4c1125db3447" />
@@ -153,7 +133,7 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState Pin
 <br>
 - GPIO_TypeDef *GPIOx : GPIO_TypeDef 타입 포인터를 인자로 받는다.
 
-```
+```c
 
 GPIO_TypeDef: typedef로 정의된 구조체 타입(GPIO 레지스터 묶음).
 
@@ -168,10 +148,65 @@ GPIOx: 변수(매개변수) 이름.
 <br>
 
 - uint16_t GPIO_Pin
-```
-uint16_t : (부호 없는 16비트 정수, 0~65535)를 타입으로 갖는 매개변수 이름
+```c
+uint16_t : (부호 없는 16비트 정수, 0~65535)를 타입으로 갖는
 
-GPIO_Pin : 
+GPIO_Pin : 변수/매개변수 이름
+```
+<br>
+<br>
+
+- GPIO_PinState PinState
+```c
+GPIO_PinState : enum(열거형) 타입
+Pinstate : 변수명
+```
+<br>
+<br>
+
+- 다시 전체 코드를 살펴보자.
+```c
+void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
+{
+  /* Check the parameters */
+  assert_param(IS_GPIO_PIN(GPIO_Pin));
+  assert_param(IS_GPIO_PIN_ACTION(PinState));
+
+  if (PinState != GPIO_PIN_RESET) // PinState가 'RESET'이 아니면( GPIO_PIN_SET이면) 실행 "!= : 같지 않다. "
+  {
+    GPIOx->BSRR = GPIO_Pin;      // BSRR 하위 16비트에 마스크 기록 → 해당 핀(들) SET " -> :멤버 접근(포인터) 연산자 ptr->member == (*ptr).member" 
+  }
+  else
+  {
+    GPIOx->BSRR = (uint32_t)GPIO_Pin << 16u; // 왼쪽으로 시프트하여 BSRR 상위 16비트에 마스크 기록 → 해당 핀들 RESET "<< 16u : 왼쪽으로 16 비트 시프트"
+}
+  }
+}
+```
+<br>
+<br>
+
+- HAL_GPIO_WritePin의 구성을 알아 보았으니 함수를 이용하여 LED를 ON/OFF 시켜보자.
+  ```c
+    HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_SET);
+	  HAL_Delay(1000);
+	  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	  HAL_Delay(1000);
+  ```
+<br>
+<br>
+
+- 본래 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET); 식으로 작성하여야 하나 main.h 에 LD2가 정의되어 있어 위와 같이 코드를 써도 무관하다. (GUI에서 User Laber 설정 했기 때문에 자동으로 생성)
+- main.h
+<p align="center">
+<img width="198" height="35" alt="image" src="https://github.com/user-attachments/assets/d2d594ed-a9b8-4941-a533-21f0dd840609" />
+</p>
+<br>
+<br>
+
+- HAL_Delay( )는 딜레이를 주는 함수이다 1000의 경우 1s 에 해당한다 1의 경우 1ms 이다.
+
+
 
 
 
