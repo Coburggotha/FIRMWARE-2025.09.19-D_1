@@ -45,9 +45,27 @@
 </p>
 
 - GPIO 모드는 크게 Input, Output 모드로 나누어져 있다.
-- Input Mode: GPIO 핀으로 외부 입력 High, Low 를 받음
-- Output Mode: GPIO 핀으로 외부 입력 High, Low 를 보냄
-- 여기서 High, Low Voltage Level 은일반적으로 MCU 공급 전압과 동일하다. 자세한 사항은 Datasheet의 I/O Electricical 특성 참조.
+- Input Mode: GPIO 핀으로 입력 High, Low 를 받음
+- Output Mode: GPIO 핀으로 출력 High, Low 를 보냄
+- 여기서 High, Low Voltage Level 은일반적으로 MCU 공급 전압과 동일하다. 자세한 사항은 MCU Datasheet의 I/O Electricical 특성 참조.
+<p align="center">
+<img width="789" height="489" alt="Voltage" src="https://github.com/user-attachments/assets/68eb8f70-68d4-4ad5-9705-d07270a48741" />
+</p>
+<p align="center">
+<img width="905" height="462" alt="image" src="https://github.com/user-attachments/assets/2e870d56-489f-4acb-8510-f1b98d09ed95" />
+</p>
+
+
+- GPIO Configuration 설정
+- 
+<p align="center">
+ <img width="550" height="616" alt="image" src="https://github.com/user-attachments/assets/903d0ad0-eead-4051-816f-7ce6611f6e3a" />
+ </p>
+
+ - GPIO 설정에서 Push-Pull, Open-Drain, PullUp, PullDown에 대한 개념 설명은 생략 하도록 하겠다.
+
+   
+
 
 
 
