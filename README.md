@@ -465,12 +465,63 @@ uint16_t GPIO_Pin : 부호 없는 16비트 정수 매개변수(핀 마스크).
 <img width="288" height="201" alt="image" src="https://github.com/user-attachments/assets/97915e2b-4370-473d-a7ae-d7446744c29d" />
  </p>
 
+- uart2printf.c를 살펴보자.
 
+```
+extern UART_HandleTypeDef huart2; c
 
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+  if (ch == '\n')
+    HAL_UART_Transmit (&huart2, (uint8_t*) "\r", 1, 0xFFFF);
+  HAL_UART_Transmit (&huart2, (uint8_t*) &ch, 1, 0xFFFF);
 
+  return ch;
+}
+```
 
+- 리다이렉션(Redirection)은 사용자가 요청한 URL이 아닌 다른 URL로 연결을 재지정하는 기능입니다.
+- ifdef는 조건부 전처리기이다.
 
+```c
+#ifdef __GNUC__ //  만약 __GNUC__ 매크로가 정의되어 있다면 (컴파일러에서 자동으로 정의해주는 매크로)
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch) // PUTCHAR_PROTOTYPE라는 이름을 "int __io_putchar(int ch)" 로 치환
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f) //___GNUC___ 매크로가 정의도어 있지 않다면 PUTCHAR_PROTOTYPE라는
+                                                     // 이름을 int fputc(int ch, FILE *f) 로 치환
+#endif /* __GNUC__ */                                // 조건부 컴파일 종료
+```
+
+```c
+PUTCHAR_PROTOTYPE   // 함수 선언
+{
+  if (ch == '\n')   // 출력할 문자가 '\n'(줄바꿈)이면
+    HAL_UART_Transmit (&huart2, (uint8_t*) "\r", 1, 0xFFFF); //'\r'먼저 전송 → CR+LF 줄바꿈 맞춤
+  HAL_UART_Transmit (&huart2, (uint8_t*) &ch, 1, 0xFFFF);    // 실제 문자 전송 (1바이트)
+
+  return ch;  //printf 내부에서 쓰이므로, 출력한 문자 그대로 리턴
+}
+```
+	
+| 기호   | 이름                       | ASCII 코드 | 의미               |
+| ---- | ------------------------ | -------- | ---------------- |
+| `CR` | Carriage Return (캐리지 리턴) | 0x0D     | 커서를 **맨 앞으로 이동** |
+| `LF` | Line Feed (라인 피드)        | 0x0A     | 커서를 **다음 줄로 이동** |
 
 
 
